@@ -1,6 +1,5 @@
 import usb.util
 import time
-import errno
 
 DFU_REQUEST_SEND = 0x21
 DFU_REQUEST_RECEIVE = 0xa1
@@ -49,21 +48,8 @@ class DfuDevice:
         return self.control_msg(DFU_REQUEST_RECEIVE, DFU_UPLOAD, blockNum, size)
 
     def get_status(self):
-        # An arbitrary number of retries.
-        for i in range(5):
-            try:
-                status = self.control_msg(DFU_REQUEST_RECEIVE, DFU_GETSTATUS, 0, 6)
-                return (status[0], status[4], status[1] + (status[2] << 8) + (status[3] << 16), status[5])
-            except usb.core.USBError as ex:
-                if ex.errno == errno.EPIPE:
-                    # Stalled; wait for it to clear.
-                    time.sleep(.01 * i)
-                else:
-                    raise
-        else:
-            # One last time to either succeed or raise the exception
-            status = self.control_msg(DFU_REQUEST_RECEIVE, DFU_GETSTATUS, 0, 6)
-            return (status[0], status[4], status[1] + (status[2] << 8) + (status[3] << 16), status[5])
+        status = self.control_msg(DFU_REQUEST_RECEIVE, DFU_GETSTATUS, 0, 6)
+        return (status[0], status[4], status[1] + (status[2] << 8) + (status[3] << 16), status[5])
     
     def clear_status(self):
         self.control_msg(DFU_REQUEST_SEND, DFU_CLRSTATUS, 0, None)
@@ -80,6 +66,9 @@ class DfuDevice:
     def erase(self, pa):
         return self.dnload(0x0, [0x41] + address_to_4bytes(pa))
 
+    def mass_erase(self):
+        return self.dnload(0x0, [0x41])
+
     def leave(self):
         return self.dnload(0x0, []) # Just send an empty data.
 
@@ -95,8 +84,10 @@ class DfuDevice:
         status = self.get_status()
         
         while (status[1] in states):
+            timeout = max(.120, status[2] / 1000.0)
+            print("timeout = %f, claimed = %f" % (timeout, status[2] / 1000.0))
+            time.sleep(timeout)
             status = self.get_status()
-            time.sleep(status[2] / 1000)
         
         return status
 
