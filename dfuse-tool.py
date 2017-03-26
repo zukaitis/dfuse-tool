@@ -9,7 +9,7 @@ def find_device(args):
     usbdev = usb.core.find(idVendor=args.vid, idProduct=args.pid)
 
     if usbdev is not None:
-        dfu = dfuse.DfuDevice(usbdev)
+        dfu = dfuse.DfuDevice(usbdev, args.timeout)
         for _,alt in dfu.alternates():
             if alt.configuration == args.cfg and alt.bInterfaceNumber == args.intf and alt.bAlternateSetting == args.alt:
                 dfu.set_alternate(alt)
@@ -130,6 +130,7 @@ devinfo.add_argument('--cfg', action='store', type=int, default=0, help='Device\
 devinfo.add_argument('--intf', action='store', type=int, default=0, help='Device\'s interface number, defaults to 0')
 devinfo.add_argument('--alt', action='store', type=int, default=0, help='Device\'s alternate setting number, defaults to 0')
 devinfo.add_argument('--size', action='store', type=int, default=1024, help='Transfer size, defaults to 1024')
+devinfo.add_argument('--timeout', action='store', type=int, default=0, help='Minimum timeout in milliseconds, default is to use device specified timeouts')
 
 others = parser.add_argument_group('Other Options')
 others.add_argument('--force', '-f', action='store_true', help='Bypass sanity checks')

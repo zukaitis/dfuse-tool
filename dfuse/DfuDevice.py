@@ -17,8 +17,9 @@ def address_to_4bytes(a):
     return [ a % 256, (a >> 8)%256, (a >> 16)%256, (a >> 24)%256 ]
 
 class DfuDevice:
-    def __init__(self, device):
+    def __init__(self, device, timeout = None):
         self.dev = device
+        self.timeout = timeout
         self.cfg = self.dev[0]
         self.intf = None
         #self.dev.reset()
@@ -84,7 +85,7 @@ class DfuDevice:
         status = self.get_status()
         
         while (status[1] in states):
-            timeout = max(.120, status[2] / 1000.0)
+            timeout = max(self.timeout / 1000.0, status[2] / 1000.0)
             print("timeout = %f, claimed = %f" % (timeout, status[2] / 1000.0))
             time.sleep(timeout)
             status = self.get_status()
