@@ -64,7 +64,7 @@ def flash(args):
     if (dfufile.devInfo['vid'] != dfu.dev.idVendor or dfufile.devInfo['pid'] != dfu.dev.idProduct) and not args.force:
         raise ValueError("Vendor/Product id mismatch: [%.4x:%.4x] (file) [%.4x:%.4x] (device). Trying running with --force" % ( \
                 dfufile.devInfo['vid'], \
-                dfufile.devInfo['vid'], \
+                dfufile.devInfo['pid'], \
                 dfu.dev.idVendor, \
                 dfu.dev.idProduct))
 
