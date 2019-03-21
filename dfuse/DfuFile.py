@@ -38,7 +38,7 @@ class DfuFile:
                     raise argparse.ArgumentTypeError('Target signature does not match')
                 
                 target = {
-                        'name': target_prefix['name'].decode('ascii').rstrip('\0'),
+                        'name': target_prefix['name'].split(b'\0')[0].decode('ascii'),
                         'alternate': target_prefix['alternate'],
                         'elements': list()
                         }
